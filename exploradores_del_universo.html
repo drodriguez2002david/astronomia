@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exploradores del Universo 🚀</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-bg-primary: #ffffff;
+      --color-bg-secondary: #f5f5f2;
+      --color-bg-tertiary: #eeecea;
+      --color-text-primary: #1a1a18;
+      --color-text-secondary: #5f5e5a;
+      --color-border: rgba(0,0,0,0.12);
+      --color-border-md: rgba(0,0,0,0.22);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-sans: system-ui, -apple-system, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-bg-primary: #1e1e1c;
+        --color-bg-secondary: #2c2c2a;
+        --color-bg-tertiary: #3a3a38;
+        --color-text-primary: #f0efea;
+        --color-text-secondary: #b4b2a9;
+        --color-border: rgba(255,255,255,0.10);
+        --color-border-md: rgba(255,255,255,0.20);
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-bg-tertiary);
+      color: var(--color-text-primary);
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    .game-container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      background: linear-gradient(135deg, #042C53, #185FA5);
+      border-radius: var(--radius-lg);
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '✨ ⭐ 🌟 ✨ ⭐';
+      position: absolute;
+      top: 8px; left: 0; right: 0;
+      text-align: center;
+      font-size: 12px;
+      opacity: 0.5;
+      letter-spacing: 8px;
+    }
+    .header h1 { color: #fff; font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+    .header p  { color: #B5D4F4; font-size: 14px; }
+
+    .score-bar {
+      display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap;
+    }
+    .score-pill {
+      flex: 1; min-width: 90px;
+      background: var(--color-bg-primary);
+      border: 0.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 8px 10px; text-align: center;
+      cursor: pointer; transition: background 0.15s;
+      position: relative; overflow: hidden;
+    }
+    .score-pill:hover { background: var(--color-bg-secondary); }
+    .score-pill.active { border-color: #378ADD; background: #E6F1FB; }
+    @media (prefers-color-scheme: dark) { .score-pill.active { background: #0C447C33; } }
+    .score-pill .cat-emoji { font-size: 18px; display: block; margin-bottom: 2px; }
+    .score-pill .cat-name  { font-size: 10px; color: var(--color-text-secondary); line-height: 1.2; }
+    .score-pill .cat-pts   { font-size: 13px; font-weight: 600; color: #185FA5; }
+    .score-pill .cat-progress {
+      position: absolute; bottom: 0; left: 0;
+      height: 3px; background: #378ADD;
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      transition: width 0.3s;
+    }
+
+    .total-score {
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius-md);
+      padding: 8px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem;
+      border: 0.5px solid var(--color-border);
+    }
+    .total-score .label { font-size: 13px; color: var(--color-text-secondary); }
+    .total-score .pts   { font-size: 20px; font-weight: 600; color: #185FA5; }
+    .total-score .stars { font-size: 16px; }
+
+    .progress-row {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;
+    }
+    .progress-bar-outer {
+      flex: 1; height: 8px;
+      background: var(--color-bg-secondary);
+      border-radius: 4px; overflow: hidden;
+      border: 0.5px solid var(--color-border);
+    }
+    .progress-bar-inner { height: 100%; background: #378ADD; border-radius: 4px; transition: width 0.4s; }
+    .progress-label { font-size: 12px; color: var(--color-text-secondary); white-space: nowrap; }
+
+    .category-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 1rem; padding: 12px 16px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--color-border);
+      background: var(--color-bg-primary);
+    }
+    .category-header .cat-big-emoji { font-size: 28px; }
+    .category-header h2 { font-size: 16px; font-weight: 500; }
+    .category-header .cat-desc { font-size: 12px; color: var(--color-text-secondary); }
+    .category-header .cat-badge {
+      margin-left: auto;
+      background: #E6F1FB; color: #0C447C;
+      font-size: 11px; padding: 4px 10px;
+      border-radius: 20px; white-space: nowrap;
+    }
+    @media (prefers-color-scheme: dark) {
+      .category-header .cat-badge { background: #0C447C44; color: #85B7EB; }
+    }
+
+    .visual-card {
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius-md);
+      padding: 14px; margin-bottom: 1rem;
+      border: 0.5px solid var(--color-border);
+      text-align: center; font-size: 13px;
+      color: var(--color-text-secondary); line-height: 1.6;
+    }
+    .visual-card .vc-title { font-size: 12px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+
+    .question-card {
+      background: var(--color-bg-primary);
+      border: 0.5px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem; margin-bottom: 1rem;
+    }
+    .q-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+    .q-num {
+      min-width: 28px; height: 28px; border-radius: 50%;
+      background: #E6F1FB; color: #0C447C;
+      font-size: 12px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    @media (prefers-color-scheme: dark) { .q-num { background: #0C447C55; color: #85B7EB; } }
+    .q-type-badge {
+      font-size: 10px; padding: 2px 8px;
+      border-radius: 20px; margin-left: auto;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .q-type-mc   { background: #EAF3DE; color: #27500A; }
+    .q-type-tf   { background: #FAEEDA; color: #633806; }
+    .q-type-fill { background: #FBEAF0; color: #72243E; }
+    .q-type-match{ background: #EEEDFE; color: #3C3489; }
+    .q-text {
+      font-size: 15px; color: var(--color-text-primary);
+      line-height: 1.5; flex: 1;
+    }
+
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .option-btn {
+      padding: 10px 12px;
+      background: var(--color-bg-secondary);
+      border: 0.5px solid var(--color-border-md);
+      border-radius: var(--radius-md);
+      font-size: 13px; cursor: pointer;
+      text-align: left; line-height: 1.4;
+      transition: all 0.15s;
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+    }
+    .option-btn:hover:not([disabled]) { background: #E6F1FB; border-color: #378ADD; }
+    .option-btn.correct { background: #EAF3DE; border-color: #639922; color: #27500A; }
+    .option-btn.wrong   { background: #FCEBEB; border-color: #E24B4A; color: #791F1F; }
+
+    .tf-btns { display: flex; gap: 10px; }
+    .tf-btn {
+      flex: 1; padding: 12px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--color-border-md);
+      cursor: pointer; font-size: 14px; font-weight: 500;
+      transition: all 0.15s;
+      background: var(--color-bg-secondary);
+      color: var(--color-text-primary);
+      text-align: center; font-family: var(--font-sans);
+    }
+    .tf-btn:hover:not([disabled]) { transform: scale(1.02); }
+    .tf-btn.correct { background: #EAF3DE; border-color: #639922; color: #27500A; }
+    .tf-btn.wrong   { background: #FCEBEB; border-color: #E24B4A; color: #791F1F; }
+
+    .fill-area { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .fill-blank {
+      border: none; border-bottom: 2px solid #378ADD;
+      background: transparent; font-size: 14px;
+      padding: 4px 8px; color: var(--color-text-primary);
+      min-width: 140px; outline: none;
+      font-family: var(--font-sans);
+    }
+    .fill-blank:focus { border-bottom-color: #042C53; }
+    .check-btn {
+      padding: 8px 14px;
+      background: #E6F1FB; border: 0.5px solid #378ADD;
+      border-radius: var(--radius-md);
+      font-size: 12px; cursor: pointer; color: #0C447C;
+      font-family: var(--font-sans);
+    }
+    .check-btn:hover { background: #B5D4F4; }
+
+    .match-area { display: flex; gap: 12px; }
+    .match-col { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .match-item {
+      padding: 8px 10px; border-radius: var(--radius-md);
+      font-size: 12px; line-height: 1.3;
+      border: 0.5px solid var(--color-border);
+    }
+    .match-left  { background: #EEEDFE; border-color: #AFA9EC; color: #26215C; cursor: pointer; }
+    .match-left:hover  { background: #CECBF6; }
+    .match-left.selected { background: #534AB7; color: #fff; }
+    .match-left.matched  { background: #EAF3DE; border-color: #639922; color: #27500A; }
+    .match-right { background: var(--color-bg-secondary); cursor: pointer; }
+    .match-right:hover  { background: #E1F5EE; }
+    .match-right.matched { background: #EAF3DE; border-color: #639922; color: #27500A; }
+    .match-hint { font-size: 11px; color: var(--color-text-secondary); margin-top: 6px; }
+
+    .feedback {
+      margin-top: 10px; padding: 8px 12px;
+      border-radius: var(--radius-md); font-size: 13px; display: none;
+    }
+    .feedback.show { display: block; }
+    .feedback.ok { background: #EAF3DE; color: #27500A; }
+    .feedback.no { background: #FCEBEB; color: #791F1F; }
+    .q-points { font-size: 11px; color: var(--color-text-secondary); margin-top: 6px; }
+
+    .nav-btns { display: flex; gap: 8px; margin-top: 1.5rem; flex-wrap: wrap; }
+    .nav-btn {
+      flex: 1; padding: 10px;
+      border: 0.5px solid var(--color-border-md);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-secondary);
+      font-size: 13px; cursor: pointer;
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+    }
+    .nav-btn:hover { background: #E6F1FB; }
+    .nav-btn.primary { background: #185FA5; color: #fff; border-color: #185FA5; }
+    .nav-btn.primary:hover { background: #0C447C; }
+    .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .moon-phases { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 6px 0; }
+    .moon-ph { text-align: center; font-size: 11px; color: var(--color-text-secondary); }
+    .moon-ph .phase-icon { font-size: 22px; display: block; }
+
+    .congrats { text-align: center; padding: 2rem 1rem; }
+    .congrats .big-emoji { font-size: 60px; display: block; margin-bottom: 12px; }
+    .congrats h2 { font-size: 22px; font-weight: 500; margin-bottom: 8px; }
+    .congrats p  { font-size: 14px; color: var(--color-text-secondary); }
+    .star-display { font-size: 28px; letter-spacing: 4px; margin: 12px 0; }
+
+    .summary-card {
+      background: var(--color-bg-primary);
+      border: 0.5px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem; margin-top: 1rem;
+    }
+    .summary-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+    .summary-bar-outer {
+      flex: 1; height: 6px; background: var(--color-bg-secondary);
+      border-radius: 3px; overflow: hidden;
+    }
+    .summary-bar-inner { height: 100%; background: #378ADD; border-radius: 3px; }
+
+    @media (max-width: 480px) {
+      .options-grid { grid-template-columns: 1fr; }
+      .header h1 { font-size: 20px; }
+      .score-pill .cat-name { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+<div class="game-container">
+  <h1 style="position:absolute;left:-9999px">Exploradores del Universo — Recurso didáctico interactivo</h1>
+
+  <div class="header">
+    <h1>🚀 Exploradores del Universo</h1>
+    <p>¡Aprende sobre el espacio jugando! Para niñas y niños de 7 a 9 años</p>
+  </div>
+
+  <div class="total-score">
+    <span class="label">Puntos totales</span>
+    <span class="pts" id="totalPts">0 pts</span>
+    <span class="stars" id="starDisplay">☆☆☆☆☆</span>
+  </div>
+
+  <div class="score-bar" id="scorePills"></div>
+  <div id="mainContent"></div>
+</div>
+
+<script>
+const CATS = [
+  { id:0, emoji:'🪐', name:'Sistema Solar y Planetas', pts:0 },
+  { id:1, emoji:'🌙', name:'La Luna',                  pts:0 },
+  { id:2, emoji:'🌍', name:'La Tierra',                pts:0 },
+  { id:3, emoji:'🌑', name:'Los Eclipses',             pts:0 },
+  { id:4, emoji:'✨', name:'El Universo',              pts:0 },
+];
+
+const CAT_DESCS = [
+  'Planetas, órbitas, el Sol y más',
+  'Fases lunares, satélites y más',
+  'Movimientos, capas y vida en la Tierra',
+  'Solar, lunar y cómo ocurren',
+  'Galaxias, nebulosas, estrellas y más',
+];
+
+const QUESTIONS = {
+  0: [
+    { type:'mc',   text:'¿Cuál planeta está más cerca del Sol?', opts:['Mercurio','Venus','Tierra','Marte'], ans:0, pts:5 },
+    { type:'tf',   text:'Júpiter es un planeta rocoso.', ans:false, pts:5 },
+    { type:'fill', text:'Completa: Los planetas rocosos son Mercurio, Venus, Tierra y _____.', ans:'Marte', hint:'Mar...', pts:5 },
+    { type:'mc',   text:'¿Cuántos planetas tiene el Sistema Solar?', opts:['6','7','8','9'], ans:2, pts:5 },
+    { type:'tf',   text:'Saturno tiene anillos a su alrededor.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué hay en el centro del Sistema Solar?', opts:['La Tierra','La Luna','El Sol','Marte'], ans:2, pts:5 },
+    { type:'fill', text:'El cinturón de asteroides está entre Marte y _____.', ans:'Júpiter', hint:'Jú...', pts:5 },
+    { type:'mc',   text:'¿Qué planeta es el más grande del Sistema Solar?', opts:['Saturno','Neptuno','Júpiter','Urano'], ans:2, pts:5 },
+    { type:'tf',   text:'Plutón es uno de los ocho planetas principales.', ans:false, pts:5 },
+    { type:'mc',   text:'¿Qué planeta queda después de la Tierra, alejándose del Sol?', opts:['Venus','Júpiter','Marte','Saturno'], ans:2, pts:5 },
+    { type:'fill', text:'Los planetas gaseosos son Júpiter, Saturno, Urano y _____.', ans:'Neptuno', hint:'Nep...', pts:5 },
+    { type:'mc',   text:'¿Cómo se llama el camino que sigue un planeta alrededor del Sol?', opts:['Rotación','Órbita','Traslación','Vuelo'], ans:1, pts:5 },
+    { type:'tf',   text:'Mercurio es el planeta más pequeño del Sistema Solar.', ans:true, pts:5 },
+    { type:'match',text:'Une cada planeta con su tipo:', left:['Mercurio','Júpiter','Marte','Neptuno'], right:['Gaseoso gigante','Rocoso pequeño','Rocoso','Gigante helado'], correct:[1,0,2,3], pts:10 },
+    { type:'mc',   text:'¿Dónde está el Cinturón de Kuiper?', opts:['Entre Marte y Júpiter','Más allá de Neptuno','Entre Venus y Tierra','Cerca del Sol'], ans:1, pts:5 },
+    { type:'tf',   text:'Venus es el planeta más cercano a la Tierra.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Cuál es el orden correcto desde el Sol?', opts:['Tierra, Venus, Marte','Mercurio, Venus, Tierra','Venus, Tierra, Mercurio','Marte, Venus, Tierra'], ans:1, pts:5 },
+    { type:'fill', text:'Los dibujos del Sistema Solar casi nunca están a escala porque las _____ son enormes.', ans:'distancias', hint:'dis...', pts:5 },
+    { type:'mc',   text:'¿Qué planeta tiene forma un poco achatada por sus polos?', opts:['Marte','Mercurio','Saturno','Tierra'], ans:2, pts:5 },
+    { type:'tf',   text:'Los planetas gaseosos están más cerca del Sol que los rocosos.', ans:false, pts:5 },
+    { type:'mc',   text:'¿Qué es un asteroide?', opts:['Una estrella','Una roca espacial','Un satélite','Un gas'], ans:1, pts:5 },
+    { type:'fill', text:'El Sistema Solar tiene _____ planetas principales.', ans:'ocho', hint:'o...', pts:5 },
+    { type:'mc',   text:'¿Qué planeta es conocido por sus grandes anillos de hielo y polvo?', opts:['Júpiter','Urano','Saturno','Neptuno'], ans:2, pts:5 },
+    { type:'tf',   text:'El Sol es una estrella.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué planeta viene después de Júpiter en el orden desde el Sol?', opts:['Marte','Urano','Saturno','Neptuno'], ans:2, pts:5 },
+    { type:'fill', text:'Plutón se clasifica hoy como planeta _____.', ans:'enano', hint:'e...', pts:5 },
+    { type:'mc',   text:'¿Qué tipo de cuerpo espacial puede tener "cola" cuando se acerca al Sol?', opts:['Asteroide','Planeta','Cometa','Luna'], ans:2, pts:5 },
+    { type:'tf',   text:'Urano y Neptuno son planetas gigantes helados.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué nombre recibe el camino que recorre la Tierra alrededor del Sol?', opts:['Rotación','Órbita terrestre','Fase','Ciclo lunar'], ans:1, pts:5 },
+    { type:'fill', text:'El planeta donde vivimos se llama _____.', ans:'Tierra', hint:'T...', pts:5 },
+  ],
+  1: [
+    { type:'mc',   text:'¿La Luna tiene luz propia?', opts:['Sí, produce luz amarilla','No, refleja la luz del Sol','Sí, produce luz blanca','No tiene ninguna luz'], ans:1, pts:5 },
+    { type:'tf',   text:'La Luna es el satélite natural de la Tierra.', ans:true, pts:5 },
+    { type:'fill', text:'La distancia media entre la Tierra y la Luna es de aproximadamente _____ km.', ans:'384400', hint:'384...', pts:5 },
+    { type:'mc',   text:'¿Cómo se llama la fase lunar cuando casi no se ve la Luna?', opts:['Luna llena','Cuarto creciente','Luna nueva','Cuarto menguante'], ans:2, pts:5 },
+    { type:'tf',   text:'Durante la Luna llena, se puede ver la Luna redonda y brillante.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Cuántas fases principales tiene la Luna?', opts:['2','3','4','6'], ans:2, pts:5 },
+    { type:'fill', text:'La Luna gira alrededor de la _____.', ans:'Tierra', hint:'T...', pts:5 },
+    { type:'mc',   text:'¿Qué fase lunar viene después de la Luna nueva?', opts:['Luna llena','Cuarto menguante','Cuarto creciente','Eclipse'], ans:2, pts:5 },
+    { type:'tf',   text:'La Luna tiene agua líquida en su superficie.', ans:false, pts:5 },
+    { type:'mc',   text:'¿Qué es un satélite natural?', opts:['Una estrella pequeña','Un planeta enano','Un cuerpo que gira alrededor de un planeta','Un asteroide grande'], ans:2, pts:5 },
+    { type:'fill', text:'En la fase de cuarto _____, la parte iluminada de la Luna disminuye.', ans:'menguante', hint:'meng...', pts:5 },
+    { type:'mc',   text:'¿Por qué la Luna parece cambiar de forma durante el mes?', opts:['Porque cambia de tamaño','Porque cambia la parte iluminada que vemos','Porque gira sobre sí misma','Porque se aleja y acerca'], ans:1, pts:5 },
+    { type:'tf',   text:'La Luna tarda aproximadamente un mes en girar alrededor de la Tierra.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué refleja la Luna para que podamos verla?', opts:['La luz de las estrellas','La luz de la Tierra','La luz del Sol','Su propia luz'], ans:2, pts:5 },
+    { type:'fill', text:'En la Luna _____, la parte iluminada aumenta gradualmente.', ans:'creciente', hint:'crec...', pts:5 },
+    { type:'tf',   text:'La Luna tiene atmósfera como la Tierra.', ans:false, pts:5 },
+    { type:'mc',   text:'¿Cuál es el orden correcto de las fases lunares?', opts:['Llena→Nueva→Creciente→Menguante','Nueva→Creciente→Llena→Menguante','Creciente→Llena→Nueva→Menguante','Menguante→Creciente→Nueva→Llena'], ans:1, pts:5 },
+    { type:'fill', text:'La Luna no tiene _____ propia; refleja la luz del Sol.', ans:'luz', hint:'l...', pts:5 },
+    { type:'mc',   text:'¿Qué significa que la distancia Tierra-Luna es "media"?', opts:['Que es la mitad de la distancia al Sol','Que la Luna no siempre está exactamente igual de lejos','Que la medimos a la mitad del año','Que es una estimación muy imprecisa'], ans:1, pts:5 },
+    { type:'tf',   text:'La Luna influye en las mareas del mar.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Cómo se ve la Luna en cuarto creciente?', opts:['Completamente oscura','Redonda y brillante','Como media Luna (mitad iluminada)','Como una línea delgada'], ans:2, pts:5 },
+    { type:'fill', text:'El satélite natural de la Tierra se llama _____.', ans:'Luna', hint:'L...', pts:5 },
+    { type:'mc',   text:'¿Qué tipo de superficie tiene la Luna?', opts:['Líquida y oceánica','Gaseosa','Sólida y rocosa con cráteres','Lisa y brillante'], ans:2, pts:5 },
+    { type:'tf',   text:'Se puede ver la Luna solo de noche.', ans:false, pts:5 },
+    { type:'mc',   text:'¿Cada cuánto tiempo se repiten aproximadamente las fases de la Luna?', opts:['Cada semana','Cada 15 días','Cada mes (28-29 días)','Cada año'], ans:2, pts:5 },
+    { type:'fill', text:'La fase lunar en la que la Luna se ve completamente iluminada se llama Luna _____.', ans:'llena', hint:'ll...', pts:5 },
+    { type:'tf',   text:'En la Luna nueva, la parte iluminada es casi invisible desde la Tierra.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué herramienta se puede usar para ver mejor la Luna?', opts:['Microscopio','Telescopio','Lupa grande','Cámara de fotos'], ans:1, pts:5 },
+    { type:'fill', text:'La Luna es el único _____ natural de la Tierra.', ans:'satélite', hint:'sat...', pts:5 },
+    { type:'tf',   text:'Los astronautas han pisado la superficie de la Luna.', ans:true, pts:5 },
+  ],
+  2: [
+    { type:'mc',   text:'¿Cuál es el movimiento de la Tierra que produce el día y la noche?', opts:['Traslación','Gravitación','Rotación','Inclinación'], ans:2, pts:5 },
+    { type:'tf',   text:'La Tierra es el único planeta con seres vivos que conocemos.', ans:true, pts:5 },
+    { type:'fill', text:'La capa de gases que rodea la Tierra se llama _____.', ans:'atmósfera', hint:'atm...', pts:5 },
+    { type:'mc',   text:'¿Qué movimiento de la Tierra produce las estaciones del año?', opts:['Rotación','Gravitación','Traslación e inclinación de su eje','Solo la traslación'], ans:2, pts:5 },
+    { type:'tf',   text:'La mayor parte de la superficie de la Tierra está cubierta por agua.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Cómo se llama la capa de toda el agua del planeta?', opts:['Atmósfera','Geosfera','Biosfera','Hidrosfera'], ans:3, pts:5 },
+    { type:'fill', text:'El movimiento de la Tierra alrededor del Sol se llama _____.', ans:'traslación', hint:'tras...', pts:5 },
+    { type:'mc',   text:'¿Qué tipo de planeta es la Tierra?', opts:['Gaseoso','Rocoso','Helado','Enano'], ans:1, pts:5 },
+    { type:'tf',   text:'La Tierra gira sobre sí misma en 24 horas aproximadamente.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Cuántos satélites naturales tiene la Tierra?', opts:['0','1','2','3'], ans:1, pts:5 },
+    { type:'fill', text:'La parte sólida de la Tierra (rocas y montañas) se llama _____.', ans:'geosfera', hint:'geo...', pts:5 },
+    { type:'mc',   text:'¿Qué condición NO tiene la Tierra para albergar vida?', opts:['Agua líquida','Atmósfera','Temperatura adecuada','Dos soles'], ans:3, pts:5 },
+    { type:'tf',   text:'La Tierra completa su traslación alrededor del Sol en un año.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Cuántas estaciones del año tiene la Tierra?', opts:['2','3','4','5'], ans:2, pts:5 },
+    { type:'fill', text:'El conjunto de los seres vivos del planeta forma la _____.', ans:'biosfera', hint:'bio...', pts:5 },
+    { type:'mc',   text:'¿Qué da la atmósfera a los seres vivos?', opts:['Luz propia','Agua','Aire para respirar y protección','Movimiento'], ans:2, pts:5 },
+    { type:'tf',   text:'La Tierra es plana.', ans:false, pts:5 },
+    { type:'mc',   text:'¿Qué produce la rotación de la Tierra?', opts:['Las estaciones','Las mareas','El día y la noche','Los años'], ans:2, pts:5 },
+    { type:'fill', text:'La Tierra recibe luz y calor del _____.', ans:'Sol', hint:'S...', pts:5 },
+    { type:'tf',   text:'La atmósfera de la Tierra protege al planeta de los rayos dañinos del Sol.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Cuál es la distancia media entre la Tierra y el Sol?', opts:['384.400 km','1 millón de km','149,6 millones de km','1 billón de km'], ans:2, pts:5 },
+    { type:'fill', text:'La Tierra tiene cuatro capas principales: atmósfera, hidrosfera, geosfera y _____.', ans:'biosfera', hint:'bio...', pts:5 },
+    { type:'mc',   text:'¿Qué número ocupa la Tierra en el orden de los planetas desde el Sol?', opts:['1.º','2.º','3.º','4.º'], ans:2, pts:5 },
+    { type:'tf',   text:'La Tierra tiene volcanes y terremotos porque su interior está activo.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Cuánto tarda la Tierra en dar una vuelta completa sobre sí misma?', opts:['12 horas','24 horas','1 mes','1 año'], ans:1, pts:5 },
+    { type:'fill', text:'La 1 UA (unidad astronómica) equivale a la distancia media entre la _____ y el Sol.', ans:'Tierra', hint:'T...', pts:5 },
+    { type:'tf',   text:'La Tierra tiene un solo océano continuo que cubre más de la mitad de su superficie.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué fenómeno produce principalmente el movimiento de traslación?', opts:['El día y la noche','Las estaciones del año','Las fases de la Luna','Los eclipses'], ans:1, pts:5 },
+    { type:'fill', text:'La Tierra es el _____ planeta desde el Sol.', ans:'tercer', hint:'ter...', pts:5 },
+    { type:'tf',   text:'Los continentes y los océanos forman parte de la geosfera e hidrosfera respectivamente.', ans:true, pts:5 },
+  ],
+  3: [
+    { type:'mc',   text:'¿Qué orden describe un eclipse solar?', opts:['Sol — Tierra — Luna','Tierra — Luna — Sol','Sol — Luna — Tierra','Luna — Sol — Tierra'], ans:2, pts:5 },
+    { type:'tf',   text:'En un eclipse lunar, la Luna se vuelve completamente invisible.', ans:false, pts:5 },
+    { type:'fill', text:'En un eclipse solar, la _____ se interpone entre el Sol y la Tierra.', ans:'Luna', hint:'L...', pts:5 },
+    { type:'mc',   text:'¿Qué se oscurece durante un eclipse solar?', opts:['La Luna','Las estrellas','El Sol (visto desde la Tierra)','La Tierra entera'], ans:2, pts:5 },
+    { type:'tf',   text:'Los eclipses ocurren todos los meses.', ans:false, pts:5 },
+    { type:'mc',   text:'¿Qué orden describe un eclipse lunar?', opts:['Sol — Luna — Tierra','Sol — Tierra — Luna','Tierra — Luna — Sol','Luna — Tierra — Sol'], ans:1, pts:5 },
+    { type:'fill', text:'En el eclipse lunar, la sombra de la _____ cae sobre la Luna.', ans:'Tierra', hint:'T...', pts:5 },
+    { type:'mc',   text:'¿Por qué no hay eclipses todos los meses?', opts:['Porque la Luna no se mueve','Porque el Sol brilla siempre','Porque la órbita de la Luna está inclinada','Porque la Tierra gira muy rápido'], ans:2, pts:5 },
+    { type:'tf',   text:'Un eclipse solar ocurre cuando la Luna bloquea la luz del Sol.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué tipo de eclipse puede verse durante el día?', opts:['Eclipse lunar','Eclipse de estrellas','Eclipse solar','Eclipse terrestre'], ans:2, pts:5 },
+    { type:'fill', text:'Un eclipse _____ ocurre cuando la Tierra proyecta sombra sobre la Luna.', ans:'lunar', hint:'l...', pts:5 },
+    { type:'mc',   text:'¿Cuántos cuerpos celestes se alinean para que ocurra un eclipse?', opts:['1','2','3','4'], ans:2, pts:5 },
+    { type:'tf',   text:'Durante un eclipse lunar, podemos ver la Luna desde distintos lugares de la Tierra.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué es la penumbra en un eclipse?', opts:['La zona de sombra total','Una estrella pequeña','La zona de sombra parcial','El borde de la Luna'], ans:2, pts:5 },
+    { type:'fill', text:'En un eclipse solar, el orden es: Sol — _____ — Tierra.', ans:'Luna', hint:'L...', pts:5 },
+    { type:'mc',   text:'¿Qué le sucede al Sol durante un eclipse solar total?', opts:['Desaparece para siempre','Se ve cubierto por la Luna','Se enfría','Cambia de color permanentemente'], ans:1, pts:5 },
+    { type:'tf',   text:'Es seguro mirar directamente al Sol durante un eclipse solar sin protección.', ans:false, pts:5 },
+    { type:'mc',   text:'¿En qué fase lunar puede ocurrir un eclipse solar?', opts:['Luna llena','Cuarto creciente','Luna nueva','Cuarto menguante'], ans:2, pts:5 },
+    { type:'fill', text:'El eclipse en el que la Luna parece oscurecerse es el eclipse _____.', ans:'lunar', hint:'lun...', pts:5 },
+    { type:'tf',   text:'Un eclipse solar solo puede verse desde una pequeña zona de la Tierra.', ans:true, pts:5 },
+    { type:'mc',   text:'¿En qué fase lunar puede ocurrir un eclipse lunar?', opts:['Luna nueva','Cuarto creciente','Luna llena','Cuarto menguante'], ans:2, pts:5 },
+    { type:'fill', text:'El fenómeno en que el Sol, la Tierra y la Luna se alinean se llama _____.', ans:'eclipse', hint:'ecl...', pts:5 },
+    { type:'mc',   text:'¿Qué proyecta la Luna sobre la Tierra en un eclipse solar?', opts:['Luz','Su propia sombra','El reflejo del Sol','Calor'], ans:1, pts:5 },
+    { type:'tf',   text:'Durante un eclipse lunar, la Luna puede verse de color rojizo o anaranjado.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué diferencia hay entre un eclipse solar y uno lunar?', opts:['En el solar se oscurece la Luna; en el lunar, el Sol','En el solar se oscurece el Sol; en el lunar, la Luna','Son exactamente iguales','Solo cambia el tamaño de la sombra'], ans:1, pts:5 },
+    { type:'fill', text:'En el eclipse _____, la Luna se interpone entre el Sol y la Tierra.', ans:'solar', hint:'sol...', pts:5 },
+    { type:'mc',   text:'¿Cuál de estos describe correctamente el eclipse lunar?', opts:['La Luna tapa el Sol','La Tierra tapa el Sol','La Tierra bloquea la luz antes de que llegue a la Luna','La Luna se aleja mucho de la Tierra'], ans:2, pts:5 },
+    { type:'tf',   text:'Un eclipse total solar puede durar varios minutos.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Para ver un eclipse lunar necesitas estar en un lugar especial?', opts:['Sí, solo en el ecuador','Sí, solo en los polos','No, se puede ver desde cualquier lugar donde sea de noche','Sí, solo en el hemisferio norte'], ans:2, pts:5 },
+    { type:'fill', text:'La alineación Sol — Tierra — Luna produce el eclipse _____.', ans:'lunar', hint:'lun...', pts:5 },
+  ],
+  4: [
+    { type:'mc',   text:'¿Cómo se llama nuestra galaxia?', opts:['Andrómeda','Vía Láctea','Orión','Sirio'], ans:1, pts:5 },
+    { type:'tf',   text:'El universo contiene todo lo que existe: estrellas, planetas, galaxias y espacio.', ans:true, pts:5 },
+    { type:'fill', text:'Una _____ es un grupo enorme de estrellas, gas y polvo.', ans:'galaxia', hint:'gal...', pts:5 },
+    { type:'mc',   text:'¿Dónde se ubica el Sistema Solar dentro de la Vía Láctea?', opts:['En el centro exacto','En el Brazo de Orión o Espolón de Orión','En el borde extremo','Fuera de la galaxia'], ans:1, pts:5 },
+    { type:'tf',   text:'Una nebulosa es una nube gigante de gas y polvo en el espacio.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué pueden formar las nebulosas?', opts:['Planetas enanos','Nuevas estrellas','Cinturones de asteroides','Eclipses'], ans:1, pts:5 },
+    { type:'fill', text:'El universo es todo lo que _____ en el espacio.', ans:'existe', hint:'exi...', pts:5 },
+    { type:'mc',   text:'¿Qué tipo de galaxia es la Vía Láctea?', opts:['Elíptica','Irregular','Espiral barrada','Circular plana'], ans:2, pts:5 },
+    { type:'tf',   text:'El Sol es la única estrella del universo.', ans:false, pts:5 },
+    { type:'mc',   text:'¿Qué es una estrella?', opts:['Un planeta grande','Un cuerpo que produce luz y calor propios','Un satélite natural','Un asteroide brillante'], ans:1, pts:5 },
+    { type:'fill', text:'El Sistema Solar está dentro de la galaxia llamada _____.', ans:'Vía Láctea', hint:'Vía...', pts:5 },
+    { type:'mc',   text:'¿Cuál es el orden correcto de menor a mayor escala?', opts:['Tierra→Universo→Sistema Solar→Vía Láctea','Tierra→Sistema Solar→Vía Láctea→Universo','Universo→Vía Láctea→Sistema Solar→Tierra','Sistema Solar→Tierra→Vía Láctea→Universo'], ans:1, pts:5 },
+    { type:'tf',   text:'Las galaxias contienen miles de millones de estrellas.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué es un cometa?', opts:['Una galaxia pequeña','Un cuerpo de hielo, polvo y roca que puede tener cola','Un planeta sin satélite','Un tipo de asteroide gaseoso'], ans:1, pts:5 },
+    { type:'fill', text:'Una nebulosa es una nube de _____ y polvo en el espacio.', ans:'gas', hint:'g...', pts:5 },
+    { type:'mc',   text:'¿Qué diferencia a un meteorito de un meteoro?', opts:['El meteoro llega al suelo; el meteorito no','El meteorito llega al suelo; el meteoro se desintegra en la atmósfera','Son exactamente lo mismo','El meteorito está en el espacio; el meteoro está en la Tierra'], ans:1, pts:5 },
+    { type:'tf',   text:'La Vía Láctea tiene forma de espiral.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Cómo se llama la zona de la Vía Láctea donde está nuestro Sistema Solar?', opts:['Cinturón de Kuiper','Centro galáctico','Brazo de Orión','Nube de Oort'], ans:2, pts:5 },
+    { type:'fill', text:'Las estrellas se pueden ver principalmente por la _____.', ans:'noche', hint:'n...', pts:5 },
+    { type:'tf',   text:'Una galaxia puede contener millones de sistemas solares.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué es una "estrella fugaz"?', opts:['Una estrella que se mueve','Un meteorito que llega al suelo','La luz que produce un fragmento al entrar en la atmósfera (meteoro)','Una luna nueva'], ans:2, pts:5 },
+    { type:'fill', text:'El Sol se encuentra en el _____ de Orión dentro de la Vía Láctea.', ans:'Brazo', hint:'Br...', pts:5 },
+    { type:'mc',   text:'¿Qué existe entre las estrellas en una galaxia?', opts:['Solo vacío absoluto','Gas, polvo, planetas y otros cuerpos','Solo agua','Solo asteroides'], ans:1, pts:5 },
+    { type:'tf',   text:'Existen miles de millones de galaxias en el universo.', ans:true, pts:5 },
+    { type:'mc',   text:'¿Qué hace que los cometas tengan "cola" visible?', opts:['Se mueven muy rápido','Su color brillante','El gas y polvo que se libera al acercarse al Sol','Son galaxias muy pequeñas'], ans:2, pts:5 },
+    { type:'fill', text:'Una _____ es un cuerpo de hielo y polvo que puede tener cola cerca del Sol.', ans:'cometa', hint:'com...', pts:5 },
+    { type:'mc',   text:'¿Qué es la Vía Láctea para nosotros?', opts:['Nuestro sistema solar','Nuestra galaxia','Nuestra estrella','Nuestro planeta'], ans:1, pts:5 },
+    { type:'tf',   text:'El universo tiene un tamaño finito y pequeño.', ans:false, pts:5 },
+    { type:'mc',   text:'¿Qué objeto celeste tiene luz propia?', opts:['Planeta','Luna','Estrella','Cometa'], ans:2, pts:5 },
+    { type:'fill', text:'Nuestra galaxia es la _____ _____.', ans:'Vía Láctea', hint:'V... L...', pts:5 },
+  ]
+};
+
+const VISUALS = {
+  0: `<svg viewBox="0 0 500 90" width="100%" xmlns="http://www.w3.org/2000/svg">
+    <rect width="500" height="90" fill="#042C53" rx="8"/>
+    <circle cx="30" cy="45" r="14" fill="#EF9F27"/>
+    <text x="30" y="78" text-anchor="middle" fill="#FAC775" font-size="8">Sol</text>
+    <circle cx="75" cy="45" r="4" fill="#888780"/>
+    <text x="75" y="78" text-anchor="middle" fill="#B4B2A9" font-size="7">Mercurio</text>
+    <circle cx="115" cy="45" r="6" fill="#D85A30"/>
+    <text x="115" y="78" text-anchor="middle" fill="#F0997B" font-size="7">Venus</text>
+    <circle cx="160" cy="45" r="7" fill="#378ADD"/>
+    <text x="160" y="78" text-anchor="middle" fill="#85B7EB" font-size="7">Tierra</text>
+    <circle cx="200" cy="45" r="5" fill="#993C1D"/>
+    <text x="200" y="78" text-anchor="middle" fill="#F5C4B3" font-size="7">Marte</text>
+    <text x="235" y="48" fill="#888780" font-size="10" text-anchor="middle">···</text>
+    <text x="235" y="78" text-anchor="middle" fill="#B4B2A9" font-size="6">cinturón</text>
+    <circle cx="280" cy="45" r="16" fill="#BA7517"/>
+    <text x="280" y="78" text-anchor="middle" fill="#FAC775" font-size="7">Júpiter</text>
+    <ellipse cx="325" cy="45" rx="13" ry="10" fill="#639922"/>
+    <ellipse cx="325" cy="45" rx="20" ry="4" fill="none" stroke="#97C459" stroke-width="2.5" opacity="0.7"/>
+    <text x="325" y="78" text-anchor="middle" fill="#C0DD97" font-size="7">Saturno</text>
+    <circle cx="375" cy="45" r="10" fill="#1D9E75"/>
+    <text x="375" y="78" text-anchor="middle" fill="#9FE1CB" font-size="7">Urano</text>
+    <circle cx="425" cy="45" r="9" fill="#185FA5"/>
+    <text x="425" y="78" text-anchor="middle" fill="#B5D4F4" font-size="7">Neptuno</text>
+    <text x="470" y="48" fill="#888780" font-size="10" text-anchor="middle">···</text>
+    <text x="470" y="78" text-anchor="middle" fill="#B4B2A9" font-size="6">Kuiper</text>
+  </svg>`,
+  1: `<div class="moon-phases">
+    <div class="moon-ph"><span class="phase-icon">🌑</span>Luna nueva</div>
+    <div class="moon-ph"><span class="phase-icon">🌒</span>Creciente</div>
+    <div class="moon-ph"><span class="phase-icon">🌓</span>Cuarto cre.</div>
+    <div class="moon-ph"><span class="phase-icon">🌔</span>Gibosa cre.</div>
+    <div class="moon-ph"><span class="phase-icon">🌕</span>Luna llena</div>
+    <div class="moon-ph"><span class="phase-icon">🌖</span>Gibosa men.</div>
+    <div class="moon-ph"><span class="phase-icon">🌗</span>Cuarto men.</div>
+    <div class="moon-ph"><span class="phase-icon">🌘</span>Menguante</div>
+  </div>`,
+  2: `<svg viewBox="0 0 400 100" width="100%" xmlns="http://www.w3.org/2000/svg">
+    <rect width="400" height="100" fill="#042C53" rx="8"/>
+    <circle cx="200" cy="50" r="36" fill="#378ADD" opacity="0.9"/>
+    <ellipse cx="185" cy="44" rx="10" ry="6" fill="#639922" opacity="0.8"/>
+    <ellipse cx="215" cy="55" rx="8" ry="5" fill="#639922" opacity="0.7"/>
+    <circle cx="200" cy="50" r="44" fill="none" stroke="#85B7EB" stroke-width="1" opacity="0.3" stroke-dasharray="3,3"/>
+    <text x="80" y="25"  fill="#FAC775" font-size="9">Atmósfera 🌬️</text>
+    <text x="80" y="52"  fill="#5DCAA5" font-size="9">Hidrosfera 💧</text>
+    <text x="80" y="72"  fill="#97C459" font-size="9">Biosfera 🌿</text>
+    <text x="285" y="38" fill="#B4B2A9" font-size="9">Geosfera 🪨</text>
+    <text x="200" y="96" text-anchor="middle" fill="#B5D4F4" font-size="9">La Tierra tiene agua, tierra y atmósfera</text>
+  </svg>`,
+  3: `<svg viewBox="0 0 420 100" width="100%" xmlns="http://www.w3.org/2000/svg">
+    <rect width="420" height="100" fill="#042C53" rx="8"/>
+    <circle cx="40"  cy="50" r="20" fill="#EF9F27"/>
+    <text x="40"  y="85" text-anchor="middle" fill="#FAC775" font-size="9">Sol</text>
+    <circle cx="195" cy="50" r="9"  fill="#444441"/>
+    <text x="195" y="85" text-anchor="middle" fill="#B4B2A9" font-size="9">Luna</text>
+    <circle cx="340" cy="50" r="14" fill="#378ADD"/>
+    <text x="340" y="85" text-anchor="middle" fill="#B5D4F4" font-size="9">Tierra</text>
+    <polygon points="195,41 195,59 270,50" fill="#444441" opacity="0.5"/>
+    <text x="210" y="25" fill="#D3D1C7" font-size="8" text-anchor="middle">Eclipse solar: Sol → Luna → Tierra</text>
+    <line x1="60"  y1="50" x2="185" y2="50" stroke="#EF9F27" stroke-width="1" stroke-dasharray="4,2" opacity="0.5"/>
+    <line x1="210" y1="50" x2="325" y2="50" stroke="#444441" stroke-width="3" opacity="0.3"/>
+  </svg>`,
+  4: `<svg viewBox="0 0 420 100" width="100%" xmlns="http://www.w3.org/2000/svg">
+    <rect width="420" height="100" fill="#04342C" rx="8"/>
+    <ellipse cx="210" cy="50" rx="130" ry="40" fill="none" stroke="#5DCAA5" stroke-width="1" opacity="0.4"/>
+    <ellipse cx="210" cy="50" rx="80"  ry="25" fill="none" stroke="#5DCAA5" stroke-width="1" opacity="0.3"/>
+    <circle cx="210" cy="50" r="5" fill="#EF9F27"/>
+    <text x="210" y="70" fill="#FAC775" font-size="7" text-anchor="middle">Brazo de Orión</text>
+    <text x="210" y="95" fill="#9FE1CB" font-size="8" text-anchor="middle">Vía Láctea — nuestra galaxia espiral</text>
+    <circle cx="85"  cy="32" r="2" fill="#fff" opacity="0.7"/>
+    <circle cx="320" cy="28" r="2" fill="#fff" opacity="0.7"/>
+    <circle cx="155" cy="22" r="1.5" fill="#fff" opacity="0.5"/>
+    <circle cx="270" cy="75" r="1.5" fill="#fff" opacity="0.5"/>
+    <circle cx="340" cy="65" r="2" fill="#fff" opacity="0.6"/>
+    <circle cx="100" cy="70" r="2" fill="#fff" opacity="0.6"/>
+    <text x="36" y="18" fill="#5DCAA5" font-size="9">✨ El Universo</text>
+  </svg>`,
+};
+
+const TYPE_BADGE = { mc:'Selección múltiple', tf:'Verdadero / Falso', fill:'Completar', match:'Emparejamiento' };
+const TYPE_CLS   = { mc:'q-type-mc', tf:'q-type-tf', fill:'q-type-fill', match:'q-type-match' };
+const VISUAL_TITLES = ['🪐 El Sistema Solar','🌙 Fases de la Luna','🌍 Capas de la Tierra','🌑 Eclipse Solar','✨ La Vía Láctea'];
+
+let state = { cat:0, qIdx:0, answered:{}, matchSel:null, matchDone:{} };
+
+function getKey(cat, idx) { return cat+'_'+idx; }
+function catMaxPts(cat)   { return QUESTIONS[cat].reduce((s,q)=>s+q.pts,0); }
+function totalPts()       { return CATS.reduce((s,c)=>s+c.pts,0); }
+function maxPts()         { return Object.values(QUESTIONS).reduce((s,qs)=>s+qs.reduce((a,q)=>a+q.pts,0),0); }
+function getStars()       {
+  const p = maxPts()>0 ? totalPts()/maxPts() : 0;
+  if(p>=0.9) return '⭐⭐⭐⭐⭐';
+  if(p>=0.7) return '⭐⭐⭐⭐';
+  if(p>=0.5) return '⭐⭐⭐';
+  if(p>=0.3) return '⭐⭐';
+  if(p>0)    return '⭐';
+  return '☆☆☆☆☆';
+}
+
+function updateHeader() {
+  document.getElementById('totalPts').textContent = totalPts()+' pts';
+  document.getElementById('starDisplay').textContent = getStars();
+  document.getElementById('scorePills').innerHTML = CATS.map((c,i)=>{
+    const pct = catMaxPts(i)>0 ? (c.pts/catMaxPts(i)*100) : 0;
+    return `<div class="score-pill${state.cat===i?' active':''}" onclick="switchCat(${i})">
+      <span class="cat-emoji">${c.emoji}</span>
+      <span class="cat-name">${c.name.split(' ').slice(0,2).join(' ')}</span>
+      <span class="cat-pts">${c.pts} pts</span>
+      <div class="cat-progress" style="width:${pct.toFixed(0)}%"></div>
+    </div>`;
+  }).join('');
+}
+
+function render() {
+  updateHeader();
+  const qs  = QUESTIONS[state.cat];
+  const q   = qs[state.qIdx];
+  const key = getKey(state.cat, state.qIdx);
+  const done= state.answered[key];
+
+  const progress = `<div class="progress-row">
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner" style="width:${(state.qIdx/qs.length*100).toFixed(0)}%"></div>
+    </div>
+    <span class="progress-label">Pregunta ${state.qIdx+1} de ${qs.length}</span>
+  </div>`;
+
+  const catH = `<div class="category-header">
+    <span class="cat-big-emoji">${CATS[state.cat].emoji}</span>
+    <div>
+      <h2>${CATS[state.cat].name}</h2>
+      <div class="cat-desc">${CAT_DESCS[state.cat]}</div>
+    </div>
+    <div class="cat-badge">${CATS[state.cat].pts} / ${catMaxPts(state.cat)} pts</div>
+  </div>`;
+
+  const visual = `<div class="visual-card">
+    <div class="vc-title">${VISUAL_TITLES[state.cat]}</div>
+    ${VISUALS[state.cat]}
+  </div>`;
+
+  let qBody = '';
+
+  if (q.type==='mc') {
+    qBody = `<div class="options-grid">${q.opts.map((o,i)=>{
+      let cls='option-btn';
+      if(done!==undefined){ if(i===q.ans) cls+=' correct'; else if(done===i) cls+=' wrong'; }
+      return `<button class="${cls}" onclick="answerMC(${i})" ${done!==undefined?'disabled':''}>${o}</button>`;
+    }).join('')}</div>`;
+
+  } else if (q.type==='tf') {
+    const tCls = done!==undefined ? (q.ans  ? 'tf-btn correct':'tf-btn wrong') : 'tf-btn';
+    const fCls = done!==undefined ? (!q.ans ? 'tf-btn correct':'tf-btn wrong') : 'tf-btn';
+    qBody = `<div class="tf-btns">
+      <button class="${tCls}" onclick="answerTF(true)"  ${done!==undefined?'disabled':''}>✅ Verdadero</button>
+      <button class="${fCls}" onclick="answerTF(false)" ${done!==undefined?'disabled':''}>❌ Falso</button>
+    </div>`;
+
+  } else if (q.type==='fill') {
+    qBody = `<div class="fill-area">
+      <input class="fill-blank" id="fillInput" placeholder="${q.hint||'...'}"
+        ${done!==undefined?'disabled value="'+q.ans+'"':''}
+        onkeydown="if(event.key==='Enter')checkFill()"/>
+      ${done===undefined?`<button class="check-btn" onclick="checkFill()">Comprobar ✓</button>`:''}
+    </div>`;
+
+  } else if (q.type==='match') {
+    const md = state.matchDone[key]||{};
+    const lefts  = q.left.map((l,i)=>`<div class="match-item match-left${md[i]!==undefined?' matched':''}" onclick="selectMatch(${i},'l')">${l}</div>`).join('');
+    const rights = q.right.map((r,i)=>`<div class="match-item match-right${Object.values(md).includes(i)?' matched':''}" onclick="selectMatch(${i},'r')">${r}</div>`).join('');
+    qBody = `<div class="match-area"><div class="match-col">${lefts}</div><div class="match-col">${rights}</div></div>
+      <div class="match-hint">Toca un elemento de la izquierda y luego uno de la derecha para emparejar.</div>`;
+  }
+
+  const fb = done!==undefined
+    ? `<div class="feedback show ${done!==false&&done!=='wrong'?'ok':'no'}">${done!==false&&done!=='wrong'?'🎉 ¡Correcto! +'+q.pts+' puntos':'😅 ¡Casi! La respuesta es: '+q.ans}</div>`
+    : '<div class="feedback" id="fb"></div>';
+
+  const nav = `<div class="nav-btns">
+    <button class="nav-btn" onclick="prevQ()" ${state.qIdx===0?'disabled':''}>← Anterior</button>
+    <button class="nav-btn primary" onclick="nextQ()">${state.qIdx<qs.length-1?'Siguiente →':'Ver resumen 🏆'}</button>
+  </div>`;
+
+  document.getElementById('mainContent').innerHTML =
+    progress + catH + visual +
+    `<div class="question-card">
+      <div class="q-header">
+        <div class="q-num">${state.qIdx+1}</div>
+        <div class="q-text">${q.text}</div>
+        <span class="q-type-badge ${TYPE_CLS[q.type]}">${TYPE_BADGE[q.type]}</span>
+      </div>
+      ${qBody}${fb}
+      <div class="q-points">Vale ${q.pts} puntos</div>
+    </div>` + nav;
+}
+
+function answerMC(i) {
+  const key=getKey(state.cat,state.qIdx);
+  if(state.answered[key]!==undefined) return;
+  const q=QUESTIONS[state.cat][state.qIdx];
+  state.answered[key]=i;
+  if(i===q.ans) CATS[state.cat].pts+=q.pts;
+  render();
+}
+function answerTF(val) {
+  const key=getKey(state.cat,state.qIdx);
+  if(state.answered[key]!==undefined) return;
+  const q=QUESTIONS[state.cat][state.qIdx];
+  state.answered[key]=val;
+  if(val===q.ans) CATS[state.cat].pts+=q.pts;
+  render();
+}
+function checkFill() {
+  const key=getKey(state.cat,state.qIdx);
+  if(state.answered[key]!==undefined) return;
+  const q=QUESTIONS[state.cat][state.qIdx];
+  const inp=document.getElementById('fillInput');
+  if(!inp) return;
+  const val=inp.value.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const cor=q.ans.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const ok = val===cor || (cor.includes(val) && val.length>2);
+  state.answered[key]=ok?true:'wrong';
+  if(ok) CATS[state.cat].pts+=q.pts;
+  render();
+}
+function selectMatch(idx, side) {
+  const key=getKey(state.cat,state.qIdx);
+  const q=QUESTIONS[state.cat][state.qIdx];
+  if(!state.matchDone[key]) state.matchDone[key]={};
+  const done=state.matchDone[key];
+  if(Object.keys(done).length>=q.left.length) return;
+  if(side==='l') {
+    state.matchSel=idx;
+    document.querySelectorAll('.match-left').forEach((el,i)=>{
+      if(i===idx && done[i]===undefined) el.classList.add('selected');
+      else el.classList.remove('selected');
+    });
+  } else if(side==='r' && state.matchSel!==null) {
+    const li=state.matchSel;
+    if(done[li]!==undefined) return;
+    done[li]=idx;
+    const correct=q.correct[li]===idx;
+    if(correct) CATS[state.cat].pts+=Math.floor(q.pts/q.left.length);
+    state.matchSel=null;
+    if(Object.keys(done).length>=q.left.length) state.answered[key]=true;
+    render();
+  }
+}
+function nextQ() {
+  const qs=QUESTIONS[state.cat];
+  if(state.qIdx<qs.length-1){ state.qIdx++; state.matchSel=null; render(); }
+  else showSummary();
+}
+function prevQ() {
+  if(state.qIdx>0){ state.qIdx--; state.matchSel=null; render(); }
+}
+function switchCat(idx) {
+  state.cat=idx; state.qIdx=0; state.matchSel=null; render();
+}
+function showSummary() {
+  updateHeader();
+  const pct = maxPts()>0 ? Math.round(totalPts()/maxPts()*100) : 0;
+  let msg='¡Sigue explorando el universo!';
+  if(pct>=90) msg='¡Eres un astronauta experto! 🧑‍🚀';
+  else if(pct>=70) msg='¡Muy bien, eres un gran explorador! 🌟';
+  else if(pct>=50) msg='¡Buen trabajo, sigue aprendiendo! 📚';
+
+  const rows = CATS.map((c,i)=>{
+    const mp=catMaxPts(i), pp=mp>0?Math.round(c.pts/mp*100):0;
+    return `<div class="summary-row">
+      <span style="font-size:20px">${c.emoji}</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500;margin-bottom:4px">${c.name}</div>
+        <div class="summary-bar-outer"><div class="summary-bar-inner" style="width:${pp}%"></div></div>
+      </div>
+      <span style="font-size:13px;color:#185FA5;font-weight:600;min-width:70px;text-align:right">${c.pts}/${mp} pts</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('mainContent').innerHTML =
+    `<div class="congrats">
+      <span class="big-emoji">🚀</span>
+      <h2>${msg}</h2>
+      <div class="star-display">${getStars()}</div>
+      <p style="font-size:16px;font-weight:600;margin:8px 0;color:#185FA5">${totalPts()} / ${maxPts()} puntos (${pct}%)</p>
+      <p>¡Completaste todas las preguntas de las 5 categorías!</p>
+    </div>
+    <div class="summary-card">
+      <div style="font-size:14px;font-weight:500;margin-bottom:10px">Puntuación por categoría</div>
+      ${rows}
+    </div>
+    <div class="nav-btns" style="margin-top:1rem;flex-wrap:wrap">
+      ${CATS.map((c,i)=>`<button class="nav-btn" onclick="switchCat(${i})">${c.emoji} Repasar</button>`).join('')}
+    </div>`;
+}
+
+render();
+</script>
+</body>
+</html>
